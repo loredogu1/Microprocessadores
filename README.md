@@ -5,7 +5,7 @@ SEL0337 — Prática 5: Systemd, Git e GitHub
 Disciplina: SEL0337 — Projetos em Sistemas Embarcados
 Atividade: Checkpoint 1 e Checkpoint 2
 Plataforma: Raspberry Pi — Raspberry Pi OS
-Integrantes: [Inserir nomes e números USP]
+Integrantes: Guilherme Pereira Loredo nusp - 11885190; Pedro Calarge nusp -
 
 1. Introdução
 
@@ -57,16 +57,10 @@ O GitHub é uma plataforma utilizada para hospedar repositórios Git, facilitand
 4. Materiais utilizados
 
 - Raspberry Pi
-- Raspberry Pi OS
-- Cartão microSD
 - Protoboard
 - LED
-- Resistor de 220 a 330 Ω
+- Resistor de 470 Ω
 - Jumpers
-- Python 3
-- Biblioteca GPIO Zero
-- Systemd
-- Git e GitHub
 
 5. Desenvolvimento do projeto
 
