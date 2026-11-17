@@ -1,183 +1,91 @@
-# Microprocessadores
+# SEL0337 — Prática 5
 
-SEL0337 — Prática 5: Systemd, Git e GitHub
+## Checkpoints 1 e 2 — Controle de LED com Raspberry Pi
 
-Disciplina: SEL0337 — Projetos em Sistemas Embarcados
-Atividade: Checkpoint 1 e Checkpoint 2
-Plataforma: Raspberry Pi — Raspberry Pi OS
-Integrantes: Guilherme Pereira Loredo nusp - 11885190; Pedro Calarge nusp -
+### 1. Objetivo
 
-1. Introdução
+Esta prática tem como objetivo desenvolver aplicações de controle de GPIO utilizando uma Raspberry Pi e a linguagem Python, além de explorar a execução automática de programas por meio de serviços `systemd`.
 
-Esta prática tem como objetivo compreender o funcionamento do sistema de inicialização de sistemas Linux embarcados, utilizando o systemd para configurar e gerenciar serviços personalizados na Raspberry Pi.
+Foram utilizados dois programas: um para controlar o acionamento intermitente de um LED e outro para variar sua intensidade luminosa utilizando PWM.
 
-Também é utilizado o Git para controle de versões e o GitHub para armazenamento, documentação e compartilhamento dos códigos desenvolvidos.
+### 2. Arquivos do projeto
 
-O projeto proposto consiste em controlar um LED conectado à GPIO18 da Raspberry Pi por meio de um programa Python, configurando sua execução automática durante a inicialização do sistema operacional.
+- `blink_LED.py` — Programa responsável por ligar e desligar o LED.
+- `LED_PWM.py` — Programa responsável por variar o brilho do LED utilizando PWM.
+- `blink.service` — Arquivo de configuração de um serviço `systemd` para executar o controle PWM.
 
-2. Objetivos
+### 3. Funcionamento dos programas
 
-- Compreender o processo de boot de um sistema Linux embarcado.
-- Configurar um serviço personalizado utilizando systemd.
-- Executar automaticamente um programa Python durante a inicialização da Raspberry Pi.
-- Implementar comandos de inicialização e encerramento do serviço.
-- Utilizar Git para controle de versões.
-- Documentar o projeto em um repositório GitHub.
+**Controle de acionamento — blink_LED.py**
 
-3. Fundamentação teórica
+O programa utiliza a biblioteca `RPi.GPIO` para configurar o GPIO 12 como saída digital.
 
-3.1 Systemd
+Em um laço infinito, o LED permanece ligado durante 1 segundo e desligado durante 1 segundo, repetindo continuamente o ciclo.
 
-O systemd é um sistema de inicialização e gerenciamento de serviços utilizado em diversas distribuições Linux.
+**Controle de brilho — LED_PWM.py**
 
-Sua função é controlar os processos e serviços necessários para o funcionamento do sistema operacional, permitindo que aplicações sejam inicializadas automaticamente durante o boot.
+O segundo programa utiliza a biblioteca `gpiozero` e a classe `PWMLED` para controlar a intensidade luminosa.
 
-3.2 Systemctl
+A variável `led.value` recebe valores de 0 a 1, representando o ciclo de trabalho do PWM de 0% a 100%.
 
-O systemctl é a ferramenta utilizada para controlar os serviços gerenciados pelo systemd.
+O brilho aumenta progressivamente em incrementos de 1%, com um intervalo de 0,01 segundo entre as atualizações. Ao completar o ciclo, o programa retorna ao brilho mínimo e inicia uma nova subida.
 
-Entre suas principais funcionalidades estão iniciar, parar, reiniciar, habilitar e verificar o estado de um serviço.
+### 4. Serviço systemd
 
-3.3 Unit File
+O arquivo `blink.service` foi criado para permitir a execução do programa de controle PWM como um serviço do sistema operacional.
 
-Um unit file é um arquivo de configuração utilizado pelo systemd para definir o comportamento de determinado serviço.
+O serviço utiliza o interpretador Python 3 para executar `LED_PWM.py`.
 
-Arquivos de serviço possuem a extensão ".service" e são divididos em três seções principais:
-
-- [Unit]: contém a descrição e as dependências do serviço.
-- [Service]: define os programas executados durante a inicialização e o encerramento.
-- [Install]: determina como o serviço será habilitado para iniciar automaticamente.
-
-3.4 Git e GitHub
-
-O Git é um sistema de controle de versões que permite registrar e acompanhar alterações realizadas nos arquivos de um projeto.
-
-O GitHub é uma plataforma utilizada para hospedar repositórios Git, facilitando o compartilhamento de códigos, a documentação e o desenvolvimento colaborativo.
-
-4. Materiais utilizados
-
-- Raspberry Pi
-- Protoboard
-- LED
-- Resistor de 470 Ω
-- Jumpers
-
-5. Desenvolvimento do projeto
-
-5.1 Montagem do circuito
-
-O circuito proposto utiliza um LED conectado à GPIO18 da Raspberry Pi, com um resistor em série para limitar a corrente elétrica.
-
-As conexões são:
-
-- GPIO18 (pino físico 12) → resistor → ânodo do LED.
-- Cátodo do LED → GND (pino físico 6).
-
-O LED será controlado digitalmente pelo programa Python, alternando entre os estados ligado e desligado.
-
-5.2 Programa Python
-
-O programa "blink.py" utiliza a biblioteca GPIO Zero para controlar a GPIO18 da Raspberry Pi.
-
-Seu funcionamento é baseado em um laço de repetição que liga o LED durante 0,2 segundo e o desliga durante 0,2 segundo.
-
-O programa permanece em execução enquanto o serviço estiver ativo.
-
-Ao receber um sinal de encerramento, o programa desliga o LED e libera os recursos utilizados.
-
-5.3 Configuração do serviço
-
-Foi preparado um arquivo chamado "blink.service", responsável por definir o comportamento da aplicação no systemd.
-
-A configuração estabelece:
-
-- ExecStart: execução do programa Python responsável pelo controle do LED.
-- ExecStop: execução do programa auxiliar de encerramento.
-- WantedBy: associação ao "multi-user.target", permitindo habilitar a inicialização automática.
-
-5.4 Comandos utilizados
-
-Para iniciar o serviço:
-
-"sudo systemctl start blink.service"
-
-Para verificar seu estado:
-
-"systemctl status blink.service"
-
-Para interromper sua execução:
-
-"sudo systemctl stop blink.service"
-
-Para habilitar sua inicialização automática:
-
-"sudo systemctl enable blink.service"
-
-Para reiniciar a Raspberry Pi e verificar o funcionamento no boot:
-
-"sudo reboot"
-
-Após reiniciar, o estado do serviço poderá ser verificado novamente por meio do comando "systemctl status".
-
-6. Controle de versões
-
-O controle de versões do projeto é realizado utilizando Git, com armazenamento remoto no GitHub.
+O `systemd` permite gerenciar a aplicação por comandos de inicialização, parada, consulta de estado e habilitação para execução durante a inicialização do sistema.
 
 Os principais comandos utilizados são:
 
-- "git clone" — copiar o repositório remoto.
-- "git add" — selecionar arquivos para o próximo commit.
-- "git commit" — registrar as alterações realizadas.
-- "git push" — enviar alterações ao repositório remoto.
-- "git pull" — atualizar o repositório local.
-- "git log" — visualizar o histórico de alterações.
+- `sudo systemctl daemon-reload`
+- `sudo systemctl start blink.service`
+- `sudo systemctl status blink.service`
+- `sudo systemctl stop blink.service`
+- `sudo systemctl enable blink.service`
 
-O histórico de commits será exportado da Raspberry Pi para o arquivo "historico_git.txt", utilizando:
+**Observação:** a configuração original de parada precisa ser ajustada para garantir o desligamento adequado da aplicação.
 
-"git log > historico_git.txt"
+### 5. Conceitos utilizados
 
-Esse arquivo será utilizado para documentar o processo de versionamento desenvolvido durante a atividade.
+**GPIO:** interface de entrada e saída digital da Raspberry Pi, utilizada para controlar componentes eletrônicos.
 
-7. Registros da montagem e funcionamento
+**PWM:** modulação por largura de pulso, técnica que permite controlar a intensidade luminosa média de um LED alterando o ciclo de trabalho do sinal.
 
-7.1 Montagem prática
+**Python:** linguagem utilizada para implementar os programas de controle.
 
-Fotografia da montagem: a inserir após a realização do experimento.
+**systemd:** gerenciador de serviços do Linux, responsável por iniciar, supervisionar e interromper aplicações.
 
-7.2 Funcionamento do programa
+### 6. Evidências experimentais
 
-Fotografia ou captura de tela do programa em execução: a inserir após a realização dos testes.
+*Inserir aqui as evidências obtidas durante a execução da prática.*
 
-7.3 Inicialização automática
+**Foto 1 — Montagem do circuito**
 
-Será verificado se o serviço é inicializado corretamente durante o boot da Raspberry Pi, sem necessidade de executar manualmente o programa Python.
+[Inserir fotografia da Raspberry Pi conectada ao LED.]
 
-Resultado do teste: pendente de validação na Raspberry Pi.
+**Foto 2 — Funcionamento do LED**
 
-8. Resultados e discussão
+[Inserir fotografia ou captura demonstrando o acionamento.]
 
-A implementação proposta permite estudar a integração entre aplicações Python e o gerenciador de serviços systemd.
+**Foto 3 — Serviço systemd**
 
-A utilização de um serviço personalizado possibilita automatizar a execução de aplicações em sistemas embarcados, eliminando a necessidade de inicialização manual após ligar o equipamento.
+[Inserir captura do comando `systemctl status blink.service`, após a validação.]
 
-Os testes práticos deverão confirmar o funcionamento do LED, os comandos de gerenciamento do serviço e a inicialização automática durante o boot.
+### 7. Versionamento
 
-Os resultados experimentais serão documentados nesta seção após a execução na Raspberry Pi.
+O projeto será versionado utilizando Git e hospedado no GitHub.
 
-9. Conclusão
+O arquivo `historico_git.txt` deve conter o histórico dos commits realizados na Raspberry Pi, gerado com o comando:
 
-A Prática 5 permite estudar conceitos relacionados à inicialização de sistemas Linux embarcados, gerenciamento de serviços e controle de versões.
+`git log > historico_git.txt`
 
-A configuração do systemd demonstra como uma aplicação pode ser integrada ao processo de inicialização do sistema operacional.
+### 8. Resultados e conclusão
 
-A utilização do Git e GitHub complementa o desenvolvimento, permitindo registrar alterações, compartilhar códigos e manter a documentação organizada.
+A prática permite observar a diferença entre o acionamento digital de um LED e o controle de sua intensidade luminosa utilizando PWM.
 
-A validação final do projeto dependerá dos testes de funcionamento na Raspberry Pi e do registro das evidências experimentais.
+Também introduz a utilização de serviços `systemd` para gerenciar programas Python em sistemas Linux embarcados.
 
-10. Referências
-
-- USP — SEL0337: Projetos em Sistemas Embarcados. Prática 5: Configuração do SystemD, Git e GitHub.
-- Systemd — Documentação oficial: https://systemd.io/
-- Raspberry Pi — Documentação oficial: https://www.raspberrypi.com/documentation/
-- Git — Documentação oficial: https://git-scm.com/doc
-- GitHub Docs: https://docs.github.com/
+Os resultados experimentais, incluindo o funcionamento do serviço após a inicialização da Raspberry Pi, deverão ser registrados após os testes no equipamento.
