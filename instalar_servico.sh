@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Instala o servico usando a pasta e o usuario atuais da Raspberry Pi.
-# Uso: bash instalar_servico.sh (sem sudo; o script solicitara sudo).
+
 set -euo pipefail
 
 if [[ "${EUID}" -eq 0 ]]; then
@@ -32,7 +31,6 @@ fi
 ARQUIVO_TEMP="$(mktemp)"
 trap 'rm -f "$ARQUIVO_TEMP"' EXIT
 
-# Monta o unit file sem alterar a copia versionada no Git.
 sed -e "s|/home/sel/6190|$PASTA|g" \
     -e "s|^User=sel$|User=$USUARIO|" \
     "$PASTA/blink.service" > "$ARQUIVO_TEMP"
