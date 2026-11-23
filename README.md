@@ -2,8 +2,7 @@
 
 **Disciplina:** SEL0337 — Projetos em Sistemas Embarcados  
 **Atividade:** Checkpoint 1 (serviço systemd) e Checkpoint 2 (Git/GitHub)  
-**Plataforma:** Raspberry Pi com Raspberry Pi OS  
-**Repositório:** [loredogu1/Microprocessadores](https://github.com/loredogu1/Microprocessadores)
+**Alunos:** Guilherme Pereira Loredo e Pedro Calarge Jankauskis
 
 > **Estado da validação:** os programas e a configuração do serviço estão disponíveis neste repositório. A comprovação do funcionamento real no boot e as fotografias precisam ser adicionadas depois dos testes na Raspberry Pi. Não são apresentados testes como concluídos sem a respectiva evidência.
 
