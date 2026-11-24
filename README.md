@@ -3,7 +3,7 @@
 **Disciplina:** SEL0337 — Projetos em Sistemas Embarcados  
 **Atividade:** Checkpoints 1 e 2  
 **Plataforma:** Raspberry Pi com Raspberry Pi OS  
-**Projeto:** Controle digital e por PWM de um LED, com inicialização de uma aplicação Python pelo systemd.
+**Alunos:** Guilherme Pereira Loredo e Pedro Calarge Jankauskis
 
 ## 1. Introdução
 
