@@ -1,37 +1,26 @@
-#!/usr/bin/env python3
-# SEL0337 - Pratica 5 - Controle digital de LED
-# Pisca um LED conectado ao GPIO 12 (pino fisico 32), com intervalo de 1 s.
-# Executar este exemplo separadamente, com o servico blink.service parado.
+"""SEL0337 - Pratica 5: acionamento digital de LED na GPIO12.
 
-import signal
-from time import sleep
+Programa da pratica anterior, utilizado como exemplo de controle liga/desliga.
+O LED fica ligado por 1 segundo e desligado por 1 segundo.
+Execute separadamente do servico PWM, pois ambos usam o mesmo pino.
+"""
+
 import RPi.GPIO as GPIO
+from time import sleep
 
-PINO_LED = 12  # Numero BCM, nao o numero do pino fisico
-executando = True
-
-
-def solicitar_parada(sinal, quadro):
-    """Encerra o laco ao receber SIGTERM ou Ctrl+C."""
-    global executando
-    executando = False
-
-
-signal.signal(signal.SIGTERM, solicitar_parada)
-signal.signal(signal.SIGINT, solicitar_parada)
+PINO_LED = 12  # Numeracao BCM: GPIO12 corresponde ao pino fisico 32.
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(PINO_LED, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(PINO_LED, GPIO.OUT)
 
 try:
-    while executando:
-        GPIO.output(PINO_LED, GPIO.HIGH)
+    while True:
+        GPIO.output(PINO_LED, True)   # Liga o LED.
         sleep(1)
-        if not executando:
-            break
-        GPIO.output(PINO_LED, GPIO.LOW)
+        GPIO.output(PINO_LED, False)  # Desliga o LED.
         sleep(1)
+except KeyboardInterrupt:
+    pass  # Permite interromper com Ctrl+C.
 finally:
-    # Desliga o LED e devolve o controle do GPIO ao sistema.
-    GPIO.output(PINO_LED, GPIO.LOW)
-    GPIO.cleanup(PINO_LED)
+    GPIO.output(PINO_LED, False)
+    GPIO.cleanup(PINO_LED)  # Libera o pino quando o programa termina.

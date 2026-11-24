@@ -1,20 +1,21 @@
-#!/usr/bin/env python3
-# SEL0337 - Pratica 5 - Controle da intensidade de LED por PWM
-# Varia suavemente o brilho de 0 a 100% e de volta a 0% no GPIO 12.
-# Este e o programa iniciado automaticamente pelo servico blink.service.
+"""SEL0337 - Pratica 5: controle de brilho do LED por PWM.
+
+Mantem o funcionamento do programa original: o brilho sobe de 0 a 100%
+em passos de 1%, retornando a 0% ao final de cada ciclo.
+O script e executado pelo systemd por meio do arquivo blink.service.
+"""
 
 import signal
 from time import sleep
 from gpiozero import PWMLED
 
-PINO_LED = 12  # Numero BCM, pino fisico 32
-PASSO = 0.01   # Incremento de brilho por etapa
-INTERVALO = 0.01  # Tempo entre etapas, em segundos
+PINO_LED = 12  # GPIO12 (BCM), pino fisico 32.
+led = PWMLED(PINO_LED)
 executando = True
 
 
-def solicitar_parada(sinal, quadro):
-    """Pede parada limpa ao receber SIGTERM do systemd ou Ctrl+C."""
+def solicitar_parada(signum, frame):
+    """Recebe SIGTERM quando o servico e interrompido pelo systemd."""
     global executando
     executando = False
 
@@ -22,24 +23,13 @@ def solicitar_parada(sinal, quadro):
 signal.signal(signal.SIGTERM, solicitar_parada)
 signal.signal(signal.SIGINT, solicitar_parada)
 
-led = PWMLED(PINO_LED, initial_value=0)
-
 try:
     while executando:
-        # Aumenta o duty cycle de 0% a 100%.
-        for passo in range(0, 101):
+        for brilho in range(101):
             if not executando:
                 break
-            led.value = passo * PASSO
-            sleep(INTERVALO)
-
-        # Diminui o duty cycle de 99% a 0%.
-        for passo in range(99, -1, -1):
-            if not executando:
-                break
-            led.value = passo * PASSO
-            sleep(INTERVALO)
+            led.value = brilho / 100  # Duty cycle: 0 a 1.
+            sleep(0.01)  # Intervalo de 10 ms entre os passos.
 finally:
-    # Garante o LED apagado ao encerrar o servico.
-    led.off()
-    led.close()
+    led.off()    # Garante que o LED seja desligado ao parar o servico.
+    led.close()  # Libera os recursos da GPIO.

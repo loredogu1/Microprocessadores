@@ -1,8 +1,7 @@
-# SEL0337 - Pratica 5
-# Arquivo modelo para /etc/systemd/system/blink.service
-# O instalador configura automaticamente User e os caminhos reais do projeto.
+# SEL0337 - Pratica 5: inicializacao automatica do LED PWM.
+# Ajustar usuario/caminho se a Raspberry Pi nao utilizar /home/sel/6190.
 [Unit]
-Description=SEL0337 - Controle de brilho de LED por PWM
+Description=Blink LED - Controle PWM (SEL0337)
 After=local-fs.target
 
 [Service]
@@ -11,8 +10,6 @@ User=sel
 WorkingDirectory=/home/sel/6190
 ExecStart=/usr/bin/python3 /home/sel/6190/LED_PWM.py
 ExecStop=/usr/bin/python3 /home/sel/6190/parar_led.py $MAINPID
-Restart=on-failure
-RestartSec=2
 TimeoutStopSec=10
 
 [Install]

@@ -1,165 +1,185 @@
 # SEL0337 — Prática 5: Systemd, Git e GitHub
 
 **Disciplina:** SEL0337 — Projetos em Sistemas Embarcados  
-**Atividade:** Checkpoint 1 (serviço systemd) e Checkpoint 2 (Git/GitHub)  
-**Alunos:** Guilherme Pereira Loredo e Pedro Calarge Jankauskis
+**Atividade:** Checkpoints 1 e 2  
+**Plataforma:** Raspberry Pi com Raspberry Pi OS  
+**Projeto:** Controle digital e por PWM de um LED, com inicialização de uma aplicação Python pelo systemd.
 
+## 1. Introdução
 
+A Prática 5 aborda a execução de aplicações durante a inicialização de um sistema Linux embarcado, utilizando o gerenciador de serviços **systemd**. Para demonstrar esse funcionamento, o projeto controla um LED conectado à Raspberry Pi por meio de programas em Python.
 
-## 1. Introdução e objetivos
+Foram utilizados dois exemplos: `blink_LED.py`, que alterna os estados ligado/desligado do LED, e `LED_PWM.py`, que varia gradualmente sua intensidade luminosa. O serviço `blink.service` foi configurado para executar **`LED_PWM.py`** durante o boot. O controle de versões e a documentação são realizados com Git e GitHub.
 
-O projeto demonstra o controle de um LED ligado ao **GPIO 12** da Raspberry Pi por meio de dois programas Python: `blink_LED.py` (acionamento digital periódico) e `LED_PWM.py` (controle gradual de intensidade luminosa usando PWM). O `systemd` executa automaticamente o programa PWM durante o boot. O Git e o GitHub registram versões do código e centralizam a documentação.
+## 2. Objetivos
 
-Objetivos: controlar GPIO usando Python; compreender PWM e duty cycle; configurar um arquivo `.service` com `ExecStart` e `ExecStop`; testar os comandos do `systemctl`; registrar alterações com Git e documentá-las no GitHub.
+- Controlar uma saída GPIO da Raspberry Pi utilizando Python.
+- Demonstrar o acionamento digital e a modulação por largura de pulso (**PWM**).
+- Criar uma unidade `.service` com `ExecStart` e `ExecStop` para gerenciar a aplicação.
+- Habilitar a aplicação para execução automática no boot do Raspberry Pi OS.
+- Registrar o desenvolvimento com Git e documentar os programas e a montagem no GitHub.
 
-## 2. Conceitos utilizados
+## 3. Fundamentação teórica
 
-- **Boot e init system:** após o carregamento do kernel Linux e a montagem do sistema de arquivos, um gerenciador de inicialização como `systemd` inicia os serviços configurados.
-- **systemd:** gerenciador de unidades (units) que permite iniciar, interromper e supervisionar aplicações.
-- **systemctl:** ferramenta para `start`, `stop`, `status`, `enable`, `disable` e `daemon-reload`.
-- **GPIO:** pinos de entrada e saída digitais da Raspberry Pi, controlados por software.
-- **PWM (Pulse Width Modulation):** varia a razão cíclica (duty cycle) do sinal; valores `0`, `0.5` e `1` na propriedade `PWMLED.value` correspondem a 0%, 50% e 100% de duty cycle.
-- **Git/GitHub:** ferramentas de versionamento local e publicação/documentação do repositório.
+### 3.1 Inicialização do Linux e systemd
 
-## 3. Materiais e montagem
+Após o carregamento do kernel Linux e a montagem do sistema de arquivos, o sistema de inicialização gerencia os processos necessários ao sistema operacional. No Raspberry Pi OS, o **systemd** permite cadastrar serviços personalizados em arquivos `.service`, definindo qual programa executar, em qual usuário e em que etapa da inicialização.
 
-- Raspberry Pi com Raspberry Pi OS, cartão microSD e Python 3;
-- LED, protoboard, jumpers e **resistor limitador de corrente em série** (por exemplo, 330 Ω para um LED vermelho típico em 3,3 V);
-- Bibliotecas `gpiozero` e `RPi.GPIO` (esta última utilizada no exemplo de acionamento digital).
+Uma unidade de serviço contém seções como `[Unit]` (descrição e dependências), `[Service]` (comandos e condições de execução) e `[Install]` (habilitação do serviço no processo de inicialização).
 
-**Ligação:** GPIO12 (numeração BCM, **pino físico 32**) → resistor em série → ânodo do LED; cátodo do LED → GND da Raspberry Pi (por exemplo, pino físico 34). Não ligar o LED diretamente ao GPIO sem resistor.
+### 3.2 GPIO e PWM
 
-> Somente um dos programas deve controlar o GPIO12 por vez. Para testar `blink_LED.py`, interrompa antes o serviço PWM.
+Uma GPIO pode atuar como saída digital, assumindo níveis lógicos alto e baixo. Neste projeto, isso é usado para acender e apagar o LED.
 
-## 4. Arquivos do projeto
+Com **PWM (Pulse Width Modulation)**, a saída alterna rapidamente entre esses níveis e o ciclo de trabalho (*duty cycle*) determina a fração do período em nível alto. Por meio da classe `PWMLED` da biblioteca GPIO Zero, a propriedade `value` varia de **0** (apagado) até **1** (ciclo de trabalho de 100%). Isso permite controlar o brilho médio percebido do LED.
 
-```text
-Microprocessadores/
-├── README.md
-├── LICENSE                   # já existente no repositório remoto
-├── blink_LED.py              # LED liga/desliga a cada 1 s
-├── LED_PWM.py                # brilho sobe e desce por PWM
-├── parar_led.py              # encerramento solicitado por ExecStop
-├── blink.service             # arquivo de configuração do systemd
-├── instalar_servico.sh       # instala o serviço com o usuário/caminho locais
-├── gerar_historico.sh        # exporta o histórico Git real
-├── .gitignore
-└── imagens/                  # evidências fotográficas, após testes
+### 3.3 Git e GitHub
+
+O **Git** registra versões dos arquivos do projeto. O **GitHub** hospeda o repositório com os códigos, a documentação e as evidências fotográficas, conforme solicitado no Checkpoint 2.
+
+## 4. Materiais utilizados
+
+- Raspberry Pi com Raspberry Pi OS e Python 3.
+- LED vermelho e resistor limitador de corrente.
+- Protoboard e fios de conexão (*jumpers*).
+- Bibliotecas Python `RPi.GPIO` e `gpiozero`.
+- Gerenciador `systemd` e ferramentas Git/GitHub.
+
+## 5. Desenvolvimento
+
+### 5.1 Montagem do circuito
+
+Os programas utilizam a **GPIO12** (numeração BCM, pino físico **32** da Raspberry Pi). O LED é acionado por essa saída através de um resistor limitador de corrente e possui retorno ao GND da placa.
+
+O código de acionamento digital e o código PWM atuam sobre **o mesmo pino**. Por isso, devem ser testados separadamente, nunca simultaneamente.
+
+A fotografia da montagem é apresentada na **Seção 8.1**.
+
+### 5.2 Programa `blink_LED.py` — acionamento digital
+
+O arquivo [`blink_LED.py`](blink_LED.py) utiliza `RPi.GPIO`. Inicialmente, `GPIO.setmode(GPIO.BCM)` seleciona a numeração BCM e `GPIO.setup(12, GPIO.OUT)` configura a GPIO12 como saída. O laço alterna os níveis alto e baixo, mantendo o LED **aceso por 1 segundo e apagado por 1 segundo**. Foi acrescentado tratamento para desligar o LED e liberar o pino quando o programa é encerrado.
+
+Trecho central do código:
+
+```python
+while True:
+    GPIO.output(PINO_LED, True)   # Liga o LED
+    sleep(1)
+    GPIO.output(PINO_LED, False)  # Desliga o LED
+    sleep(1)
 ```
 
-### 4.1. `blink_LED.py`
+Esse arquivo é um exemplo independente e **não** é o processo executado automaticamente pelo serviço.
 
-Configura o pino 12 como saída usando `RPi.GPIO`. Em um laço, liga o LED por 1 segundo e o desliga por 1 segundo. Ao receber interrupção, deixa o pino em nível baixo e libera a GPIO com `cleanup`.
+### 5.3 Programa `LED_PWM.py` — controle de intensidade
 
-### 4.2. `LED_PWM.py`
+O arquivo [`LED_PWM.py`](LED_PWM.py) utiliza `PWMLED` da biblioteca `gpiozero` para controlar o brilho do LED na GPIO12. O programa percorre os valores de **0 a 100**, atribuindo `b/100` à saída PWM a cada **0,01 segundo**. O brilho aumenta gradualmente até o máximo e, ao terminar o ciclo, retorna a zero para iniciar outra subida. Esse comportamento corresponde ao código original desenvolvido para a prática.
 
-Cria um `PWMLED(12)` com a biblioteca GPIO Zero. O duty cycle aumenta de 0% a 100%, em passos de 1%, e diminui de 99% a 0%, com 10 ms entre passos. A transição é repetida enquanto o serviço estiver ativo. Um tratador de `SIGTERM` permite apagar o LED e liberar a GPIO no encerramento.
+Trecho central do código:
 
-### 4.3. `blink.service` e `parar_led.py`
-
-O arquivo de unidade possui três seções:
-
-- `[Unit]`: descrição e ordenação do serviço;
-- `[Service]`: programa Python chamado por `ExecStart`, programa auxiliar `parar_led.py` chamado por `ExecStop`, usuário e diretório de trabalho;
-- `[Install]`: `WantedBy=multi-user.target`, permitindo habilitar a inicialização automática.
-
-`ExecStop` **não** chama `blink_LED.py`, pois ele entra em um laço contínuo. Em vez disso, chama `parar_led.py`, que envia `SIGTERM` ao processo principal e espera seu encerramento. O próprio `LED_PWM.py` desliga o LED no bloco `finally`.
-
-O `blink.service` versionado usa o caminho de referência `/home/sel/6190` e o usuário `sel`, conforme os arquivos originais da prática. O script `instalar_servico.sh` substitui esses valores **na unidade instalada** pelos valores reais do usuário e da pasta do projeto, sem modificar o arquivo do Git.
-
-## 5. Instalação na Raspberry Pi (Checkpoint 1)
-
-Em um terminal da Raspberry Pi, com o repositório clonado, execute:
-
-```bash
-sudo apt update
-sudo apt install -y python3-gpiozero python3-rpi.gpio git
-cd ~/Microprocessadores
-bash instalar_servico.sh
+```python
+while executando:
+    for brilho in range(101):
+        if not executando:
+            break
+        led.value = brilho / 100
+        sleep(0.01)
 ```
 
-O instalador solicita `sudo`, copia o arquivo `.service` adaptado para `/etc/systemd/system/`, recarrega o `systemd`, habilita o serviço e o reinicia. Para conferir os resultados:
+O programa inclui tratamento do sinal `SIGTERM` para encerrar o laço e desligar o LED com `led.off()` e `led.close()` ao interromper o serviço.
 
-```bash
-systemctl status blink.service
-systemctl is-enabled blink.service
-sudo systemctl stop blink.service
-sudo systemctl start blink.service
-sudo reboot
+### 5.4 Programa `parar_led.py` — ação de parada
+
+O roteiro exige que o `ExecStop` de `blink.service` chame um programa quando o serviço for interrompido. O arquivo [`parar_led.py`](parar_led.py) recebe o identificador do processo Python (`$MAINPID`) e envia um sinal `SIGTERM`. O próprio `LED_PWM.py` trata esse sinal, desliga o LED e libera a GPIO.
+
+Essa separação é necessária porque **`blink_LED.py` possui um laço contínuo** e, portanto, não é adequado como rotina de encerramento do serviço.
+
+### 5.5 Arquivo `blink.service` — inicialização automática
+
+O arquivo [`blink.service`](blink.service) registra o programa PWM como serviço do systemd. A configuração utilizada é:
+
+```ini
+[Unit]
+Description=Blink LED - Controle PWM (SEL0337)
+After=local-fs.target
+
+[Service]
+Type=simple
+User=sel
+WorkingDirectory=/home/sel/6190
+ExecStart=/usr/bin/python3 /home/sel/6190/LED_PWM.py
+ExecStop=/usr/bin/python3 /home/sel/6190/parar_led.py $MAINPID
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-**Teste de boot:** após reiniciar a Raspberry Pi, conferir visualmente o brilho variando e executar `systemctl status blink.service` para registrar o estado `active (running)`. Não basta que o serviço tenha sido habilitado; é necessário verificar a inicialização real.
+- **`ExecStart`** executa o programa `LED_PWM.py` com Python 3.
+- **`ExecStop`** chama `parar_led.py` para solicitar o encerramento da aplicação.
+- **`User` e `WorkingDirectory`** definem, respectivamente, o usuário `sel` e o diretório `/home/sel/6190` observados na Raspberry Pi.
+- **`WantedBy=multi-user.target`** permite habilitar o serviço na inicialização do sistema.
 
-**Para testar o blink digital separadamente:**
+## 6. Gerenciamento e verificação do serviço
 
-```bash
-sudo systemctl stop blink.service
-python3 blink_LED.py
-# Encerrar com Ctrl+C; depois:
-sudo systemctl start blink.service
-```
-
-Para investigar falhas:
+Para o systemd reconhecer a unidade, o arquivo `blink.service` deve estar instalado em `/etc/systemd/system/`. Os comandos relacionados à atividade são:
 
 ```bash
-journalctl -u blink.service -b --no-pager
+sudo cp /home/sel/6190/blink.service /etc/systemd/system/
 sudo systemctl daemon-reload
+sudo systemctl enable blink.service
+sudo systemctl start blink.service
+systemctl status blink.service
 ```
 
-Caso o usuário ou diretório seja alterado, executar novamente `bash instalar_servico.sh` para reinstalar o serviço atualizado.
-
-> Dependendo do modelo da Raspberry Pi e da versão do Raspberry Pi OS, as bibliotecas de GPIO podem diferir. Se o teste de importação ou o acesso ao GPIO falhar, verificar a compatibilidade das bibliotecas antes de atribuir o erro ao `systemd`.
-
-## 6. Controle de versões (Checkpoint 2)
-
-No terminal da Raspberry Pi, após clonar o repositório:
+O comando `start` inicia o programa PWM e `status` permite consultar o estado do serviço. Para verificar a rotina de parada, utiliza-se:
 
 ```bash
-git clone https://github.com/loredogu1/Microprocessadores.git
-cd Microprocessadores
-git status
-git add README.md blink_LED.py LED_PWM.py parar_led.py blink.service instalar_servico.sh gerar_historico.sh .gitignore imagens/
-git commit -m "Conclui estrutura da Pratica 5: Python, systemd e documentacao"
-git push origin main
+sudo systemctl stop blink.service
 ```
 
-Se os arquivos foram enviados pelo site do GitHub, fazer `git pull` na Raspberry Pi antes de criar novos commits locais.
+Após habilitar a unidade, o teste pedido no Checkpoint 1 consiste em reiniciar a Raspberry Pi e verificar se o LED passa a ser controlado automaticamente **sem executar o script Python manualmente**. As fotografias apresentadas neste README não incluem o resultado do `systemctl status` após o boot, portanto **essa comprovação ainda precisa ser registrada**.
 
-Para gerar o arquivo exigido pelo roteiro, **na Raspberry Pi e dentro do clone do repositório**, executar:
+## 7. Controle de versões com Git
 
-```bash
-bash gerar_historico.sh
-# Equivalente a: git log > historico_git.txt
-```
+O Git foi utilizado como ferramenta de versionamento do projeto, e o GitHub foi escolhido para disponibilizar os programas Python, o serviço systemd e a documentação solicitada na Prática 5. O histórico de commits deve ser exportado **no repositório local da Raspberry Pi** para o arquivo `historico_git.txt`, conforme o roteiro. Esse histórico precisa refletir os commits reais; não é substituído por um texto produzido manualmente.
 
-Esse arquivo deve conter o histórico **real** de commits (não deve ser inventado). Após gerá-lo, o arquivo `historico_git.txt` pode ser adicionado ao repositório e enviado em um commit posterior.
+## 8. Registros experimentais
 
-## 7. Registros experimentais a incluir (Checkpoint 2)
+### 8.1 Montagem prática
 
-Os itens abaixo devem ser substituídos por fotos e prints **reais** dos ensaios:
+![LED vermelho aceso na montagem prática](imagens/01_montagem_raspberry_led.jpg)
 
-- **Fotografia da montagem:** inserir `imagens/montagem.jpg` e depois incluir no README `![Montagem real](imagens/montagem.jpg)`.
-- **Controle digital:** registrar `blink_LED.py` funcionando, se possível em foto ou vídeo.
-- **Controle PWM:** registrar o LED variando o brilho.
-- **Serviço durante o boot:** inserir `imagens/status-boot.png` com print de `systemctl status blink.service` depois da reinicialização.
-- **Vídeo da inicialização:** se a atividade for realizada antecipadamente/fora do horário de aula, o roteiro pede vídeo curto mostrando o funcionamento desde o boot, substituindo a demonstração em sala.
+*Figura 1 — Montagem do circuito com LED aceso, resistor limitador, protoboard e Raspberry Pi.*
 
-**Ainda não há fotos ou prints reais incluídos nesta versão.** A pasta `imagens/` contém apenas um marcador para preservá-la no Git.
+### 8.2 Organização dos arquivos e edição da unidade
 
-## 8. Resultados e discussão
+![Terminal mostrando arquivos do projeto e arquivo de serviço aberto no editor](imagens/02_arquivos_e_servico.jpg)
 
-Pelo código, `blink_LED.py` implementa acionamento digital com período de 2 segundos, enquanto `LED_PWM.py` implementa modulação do brilho com aproximadamente 2 segundos por ciclo de subida e descida. O serviço `blink.service` contém a configuração necessária para iniciar automaticamente o PWM na inicialização e chamar um programa de parada no `ExecStop`.
+*Figura 2 — Terminal do Raspberry Pi OS mostrando a pasta de trabalho `/home/sel/6190` e a edição do arquivo de serviço no GNU nano.*
 
-**Resultado experimental pendente:** a operação em hardware, o encerramento sem erros e a inicialização real após reboot precisam ser comprovados por fotos/prints e demonstração na Raspberry Pi.
+### 8.3 Inicialização no boot
 
-## 9. Conclusão
+A documentação do Checkpoint 1 requer confirmar que o programa inicia automaticamente com a Raspberry Pi. Para concluir a evidência, ainda é necessário registrar o resultado real de `systemctl status blink.service` após reiniciar a placa e, se a prática for realizada fora do horário de aula, apresentar o vídeo curto solicitado pelo roteiro.
 
-A atividade reúne acionamento de GPIO, controle PWM, programação em Python, gerenciamento de serviços com `systemd` e versionamento com Git/GitHub. Os arquivos fornecem uma implementação preparada para execução e testes. A confirmação dos objetivos práticos depende da validação física e da documentação das evidências no repositório.
+## 9. Resultados e discussão
 
-## 10. Referências
+A montagem fotografada apresenta o LED vermelho aceso na protoboard conectada à Raspberry Pi, evidenciando um estado de acionamento da saída. Também foi documentada a presença de arquivos de trabalho e a edição de uma unidade de serviço no sistema operacional.
 
-- USP. **SEL0337 — Projetos em Sistemas Embarcados.** Prática 5: Configuração do SystemD, Controle de Versão e GitHub (roteiro da disciplina).
-- [Documentação da Raspberry Pi](https://www.raspberrypi.com/documentation/)
-- [GPIO Zero — documentação](https://gpiozero.readthedocs.io/)
-- [systemd — documentação](https://systemd.io/)
-- [Git — documentação](https://git-scm.com/doc)
+Os códigos fornecidos permitem comparar dois métodos de controle: a alternância digital, com intervalos de 1 segundo, e a variação progressiva do ciclo de trabalho PWM, com atualizações de 0,01 segundo. O arquivo `blink.service` fornece a configuração para integrar o programa PWM à inicialização do sistema e interrompê-lo por meio do `ExecStop`.
+
+As fotografias **não permitem confirmar**, isoladamente, a variação temporal do brilho nem a inicialização automática do serviço após o boot. Esses testes devem ser documentados separadamente para completar a validação experimental.
+
+## 10. Conclusão
+
+O projeto reúne programação Python, acionamento de GPIO, controle PWM e configuração de um serviço personalizado no Linux embarcado. Os programas `blink_LED.py` e `LED_PWM.py` implementam diferentes comportamentos de um LED, enquanto `blink.service` define a execução automática da aplicação PWM e sua rotina de parada.
+
+O repositório organiza o código e os registros fotográficos pedidos nos Checkpoints 1 e 2. A comprovação final da inicialização automática depende do teste do serviço durante o boot da Raspberry Pi e do registro do histórico real de commits.
+
+## 11. Referências
+
+- USP — SEL0337, *Prática 5: Configuração do SystemD para Personalização de Serviços de Inicialização de S.O. em Linux Embarcado, Controle de Versão e Repositório de Códigos com Git e GitHub*. Roteiro da disciplina.
+- [Documentação da Raspberry Pi](https://www.raspberrypi.com/documentation/).
+- [Documentação da biblioteca GPIO Zero](https://gpiozero.readthedocs.io/).
+- [Documentação do systemd](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html).
+- [Documentação do Git](https://git-scm.com/doc).
